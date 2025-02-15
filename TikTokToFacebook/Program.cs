@@ -20,7 +20,7 @@ class Program
 
     static async Task Main(string[] args)
     {
-        try
+         try
         {
             KillProcessByName("ffmpeg");
             string videoUrl = await GetTikTokVideoUrl();
