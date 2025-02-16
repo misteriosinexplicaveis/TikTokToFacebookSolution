@@ -1,40 +1,36 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Net.Http;
+﻿using System.Diagnostics;
 using System.Net.Http.Headers;
-using System.Runtime.ConstrainedExecution;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using TikTokToFacebook;
 
 class Program
 {
-    private static readonly string facebookPageId = "2789468501067417";
-    private static readonly string facebookAccessToken = "EAAJCfA3UHIQBOwjGQdMWhKv9eEmxdzrjQYHosZAhOvc6IKu8DD9QFgBIyo5RLm8tkDicsNUceHUS8BpN5CclZADDsU71iwKasbkiAkVqgZCiZCU6n3dhyoUEh1891QEGQw85pRYIFKldZCqwxuHqoWU2fU3ZC5cOzGsqFT1vfMod6j4mZBcgpZAZCeqZCwZCAwWGcYrtKpeaMZBZAsOqMryXQDiitwAZDZD";
-    private static readonly string tiktokVideoUrl = "https://www.tiktok.com/@momentocuriosos/video/7463478484153961734";
-    private static readonly string rapidApiKey = "a06d1bb238mshcfa03782743f37bp1d64c0jsn0703764c6935";
-    private static readonly string videoDownloadPath = "testvideo.mp4";
-    private static string desc;
-    private static string title;
+    private static string tiktokuser = "@momentocuriosos";
+    private static string tiktokvideoid = "7463478484153961734";
+    private const string facebookPageId = "2789468501067417";
+    private const string facebookAccessToken = "EAAJCfA3UHIQBOwjGQdMWhKv9eEmxdzrjQYHosZAhOvc6IKu8DD9QFgBIyo5RLm8tkDicsNUceHUS8BpN5CclZADDsU71iwKasbkiAkVqgZCiZCU6n3dhyoUEh1891QEGQw85pRYIFKldZCqwxuHqoWU2fU3ZC5cOzGsqFT1vfMod6j4mZBcgpZAZCeqZCwZCAwWGcYrtKpeaMZBZAsOqMryXQDiitwAZDZD";
+   // private const string tiktokVideoUrl = "https://www.tiktok.com/@momentocuriosos/video/7463478484153961734";
+    private const string rapidApiKey = "a06d1bb238mshcfa03782743f37bp1d64c0jsn0703764c6935";
+    private const string videoDownloadPath = "testvideo.mp4";
+
+    private const string ffmpegPath = @"C:\ffmpeg-master-latest-win64-lgpl-shared\bin\ffmpeg.exe";
+    private const string inputVideo = @"C:\Users\diogo\source\repos\TikTok\TikTokToFacebook\bin\Debug\net8.0\testvideo.mp4";
+    private const string overlayText = "https\\://www.facebook.com/misteriosinexplicaveisoficial";
+    private const string outputVideo = "output_video.mp4";
+    private static string? desc;
+    private static string? title;
 
     static async Task Main(string[] args)
     {
          try
         {
             KillProcessByName("ffmpeg");
-            string videoUrl = await GetTikTokVideoUrl();
+            string videoUrl = await GetTikTokVideoUrl(tiktokuser, tiktokvideoid);
             if (!string.IsNullOrEmpty(videoUrl))
             {
                 await DownloadVideo(videoUrl, videoDownloadPath);
                 Thread.Sleep(3000);
                 KillProcessByName("ffmpeg");
                 Thread.Sleep(2000);
-
-                string ffmpegPath = @"C:\Users\diogo.DIOGOMP84.001\Downloads\ffmpeg-master-latest-win64-gpl-shared\ffmpeg-master-latest-win64-gpl-shared\bin\ffmpeg.exe";
-                string inputVideo = @"C:\Users\diogo.DIOGOMP84.001\source\repos\TikTokToFacebookSolution\TikTokToFacebook\bin\Debug\net8.0\testvideo.mp4";
-                string outputVideo = "output_video.mp4";
-                string overlayText = "https\\://www.facebook.com/misteriosinexplicaveisoficial";
 
                 if (File.Exists(outputVideo))
                 {
@@ -106,7 +102,7 @@ class Program
         }
     }
 
-    public static string RemoveWordsStartingWithHash(string input)
+    public static string RemoveWordsStartingWithHash(string? input)
     {
         // Split the input string into an array of words
         string[] words = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -120,10 +116,11 @@ class Program
         return result;
     }
 
-    private static async Task<string> GetTikTokVideoUrl()
+    private static async Task<string> GetTikTokVideoUrl(string tiktokuser, string tiktokvideoid)
     {
         using (var client = new HttpClient())
         {
+            string tiktokVideoUrl = "https://www.tiktok.com/" + tiktokuser + "/video/" + tiktokvideoid;
             var request = new HttpRequestMessage(HttpMethod.Get, $"https://tiktok-download-video-no-watermark.p.rapidapi.com/tiktok/info?url={tiktokVideoUrl}");
             request.Headers.Add("x-rapidapi-key", rapidApiKey);
             request.Headers.Add("x-rapidapi-host", "tiktok-download-video-no-watermark.p.rapidapi.com");
@@ -134,8 +131,9 @@ class Program
                 var body = await response.Content.ReadAsStringAsync();
                 var jsonResponse = JObject.Parse(body);
 
-                desc = jsonResponse["data"]["desc"].ToString();
+                desc = jsonResponse["data"]?["desc"]?.ToString();
 
+             
                 return jsonResponse["data"]["video_link_nwm"].ToString();
             }
         }
