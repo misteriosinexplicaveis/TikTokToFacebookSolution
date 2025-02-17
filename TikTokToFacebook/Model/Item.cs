@@ -8,9 +8,9 @@ namespace TikTokToFacebook.Model
 {
     public class Item
     {
-        [JsonProperty("author")]
-        public Author Author { get; set; }
         [JsonProperty("createTime")]
         public long CreateTime { get; set; }
+        [JsonProperty("id")]
+        public string Id { get; set; }
     }
 }

@@ -37,7 +37,7 @@ class Program
     static async Task Main(string[] args)
     {
         string userSecUid = await GetUsersSecUidAsync(tiktokuser);
-        var itemList = await GetUserPostsAsync(userSecUid, "10");
+        var itemList = await GetUserPostsAsync(userSecUid, "12");
 
         // Create a List of strings
         List<Item> newVideos = new List<Item>();
@@ -56,7 +56,7 @@ class Program
         { 
             try
             {
-                var videoId = item.Author.Id;
+                var videoId = item.Id;
                 var createTime = item.CreateTime;
                 KillProcessByName("ffmpeg");
                 string videoUrl = await GetTikTokVideoUrl(tiktokuser, videoId);
