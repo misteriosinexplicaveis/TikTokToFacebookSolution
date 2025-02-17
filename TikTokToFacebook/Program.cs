@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TikTokToFacebook.Model;
 using MySql.Data.MySqlClient;
+using System;
 
 class Program
 {
@@ -37,19 +38,25 @@ class Program
     static async Task Main(string[] args)
     {
         string userSecUid = await GetUsersSecUidAsync(tiktokuser);
-        var itemList = await GetUserPostsAsync(userSecUid, "12");
+        var itemList = await GetUserPostsAsync(userSecUid, "14");
 
         // Create a List of strings
         List<Item> newVideos = new List<Item>();
 
         foreach (Item item in itemList.Data.ItemList)
         {
-            var itemTimestamp = item.CreateTime;
-
-            if (!RecordExistsInMySQL(connectionString, itemTimestamp))
+            var id = item.Id;
+ 
+            if (!RecordExistsInMySQL(connectionString, id, tiktokuser))
             {
                 newVideos.Add(item);
             }
+        }
+
+        if(newVideos.Count == 0){
+            Console.WriteLine($"No new videos to push!");
+            newVideos.Clear();
+            return;
         }
         
         foreach (Item item in newVideos)
@@ -77,8 +84,12 @@ class Program
                     KillProcessByName("ffmpeg");
                     title = RemoveWordsStartingWithHash(desc);
 
-                    await UploadVideoToFacebook(outputVideo, desc, title);
-                    InsertRecord(videoId, createTime);
+                    bool isVideoUploadedWithoutErros = await UploadVideoToFacebook(outputVideo, desc, title);
+                    if (isVideoUploadedWithoutErros)
+                    {
+                        InsertRecord(videoId, createTime, tiktokuser);
+                    }
+                   
                 }
             }
             catch (Exception ex)
@@ -89,10 +100,10 @@ class Program
         newVideos.Clear();
     }
 
-    private static bool RecordExistsInMySQL(string connectionString, long createTime)
+    private static bool RecordExistsInMySQL(string connectionString, string id, string user)
     {
         bool exists = false;
-        string query = "SELECT COUNT(*) FROM TIKTOKTOFACEBOOK WHERE CreateTime = @CreateTime";
+        string query = "SELECT COUNT(*) FROM TIKTOKTOFACEBOOK WHERE Id = @Id AND User = @User";
 
         using (MySqlConnection conn = new MySqlConnection(connectionString))
         {
@@ -101,7 +112,8 @@ class Program
                 conn.Open();
                 using (MySqlCommand cmd = new MySqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@CreateTime", createTime);
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    cmd.Parameters.AddWithValue("@User", user);
                     int count = Convert.ToInt32(cmd.ExecuteScalar());
                     exists = count > 0;
                 }
@@ -265,7 +277,7 @@ class Program
         Console.WriteLine("Video downloaded successfully: " + outputPath);
     }
 
-    private static async Task UploadVideoToFacebook(string filePath, string description, string title)
+    private static async Task<Boolean> UploadVideoToFacebook(string filePath, string description, string title)
     {
         using (var client = new HttpClient())
         using (var form = new MultipartFormDataContent())
@@ -285,18 +297,20 @@ class Program
             if (response.IsSuccessStatusCode)
             {
                 Console.WriteLine("Video uploaded successfully to Facebook!");
+                return true;
             }
             else
             {
                 Console.WriteLine($"Facebook Upload Error: {responseString}");
+                return false;
             }
         }
     }
 
-    public static void InsertRecord(string id, long createTime)
+    public static void InsertRecord(string id, long createTime, string user)
     {
         bool success = false;
-        string query = "INSERT INTO TIKTOKTOFACEBOOK (Id, CreateTime) VALUES (@Id, @CreateTime)";
+        string query = "INSERT INTO TIKTOKTOFACEBOOK (Id, CreateTime, User) VALUES (@Id, @CreateTime, @User)";
 
         using (MySqlConnection conn = new MySqlConnection(connectionString))
         {
@@ -307,6 +321,7 @@ class Program
                 {
                     cmd.Parameters.AddWithValue("@Id", id);
                     cmd.Parameters.AddWithValue("@CreateTime", createTime);
+                    cmd.Parameters.AddWithValue("@User", user);
 
                     int rowsAffected = cmd.ExecuteNonQuery();
                     success = rowsAffected > 0;
