@@ -21,14 +21,15 @@ namespace TikTokToFacebook.Services
             return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
         }
 
-        public void InsertRecord(string id, long createTime, string user)
+        public void InsertRecord(string id, long createTime, string user, string status)
         {
             using var conn = new MySqlConnection(_connectionString);
             conn.Open();
-            using var cmd = new MySqlCommand("INSERT INTO TIKTOKTOFACEBOOK (Id, CreateTime, User) VALUES (@Id, @CreateTime, @User)", conn);
+            using var cmd = new MySqlCommand("INSERT INTO TIKTOKTOFACEBOOK (Id, CreateTime, User, Status) VALUES (@Id, @CreateTime, @User, @Status)", conn);
             cmd.Parameters.AddWithValue("@Id", id);
             cmd.Parameters.AddWithValue("@CreateTime", createTime);
             cmd.Parameters.AddWithValue("@User", user);
+            cmd.Parameters.AddWithValue("@Status", status);
             cmd.ExecuteNonQuery();
         }
     }

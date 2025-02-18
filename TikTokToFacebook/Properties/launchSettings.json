@@ -1,0 +1,17 @@
+{
+  "profiles": {
+    "TikTokToFacebook": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "WATERMARK": "Mistérios Inexplicáveis®",
+        "USER": "@momentocuriosos",
+        "VIDEO_QUANTITY": "3",
+        "API_KEY": "a06d1bb238mshcfa03782743f37bp1d64c0jsn0703764c6935",
+        "API_HOST": "tiktok-api23.p.rapidapi.com",
+        "FACEBOOK_PAGE_ID": "2789468501067417",
+        "FACEBOOK_ACCESS_TOKEN": "EAAJCfA3UHIQBOzyHSVZCOwBC1TAtaAcDEX4zEthBZBHrygETLMGblyAxDAWX2arhnt5V37n4MgdmPgzaJKXgSfmL4VYjINeicqQqdismhCuXE4Fyksj27i0hudF94WPdiaXj9j9lSAWVg2UCqSluxr65OHSTbEcXWwQMX2aBAgaGZAZCxvm74Lwv3q8uyAZDZD",
+        "CONNECTION_STRING": "server=localhost;database=tiktok;user=tiktok;password=Jid4N7!SL80pEd;"
+      }
+    }
+  }
+}

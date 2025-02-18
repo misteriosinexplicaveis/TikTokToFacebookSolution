@@ -9,6 +9,6 @@ namespace TikTokToFacebook.Services
     public interface IDatabaseService
     {
         bool RecordExists(string id, string user);
-        void InsertRecord(string id, long createTime, string user);
+        void InsertRecord(string id, long createTime, string user, string status);
     }
 }
